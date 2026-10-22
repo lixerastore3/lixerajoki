@@ -1,4 +1,6 @@
 
+"use strict";
+
 const ADMIN_WA = "628818238317";
 
 const PRICES = {
@@ -32,17 +34,10 @@ const RANK_IMAGES = {
   Immortal: "Immortal.jpg"
 };
 
-// GM, Epic, Legend: 5 divisi x 5 bintang.
-// Mythic: 0–24, Honor: 25–49,
-// Glory: 50–99, Immortal: 100+.
 const RANK_BASE = {
   Grandmaster: 0,
   Epic: 25,
-  Legend: 50,
-  Mythic: 75,
-  Honor: 100,
-  Glory: 125,
-  Immortal: 175
+  Legend: 50
 };
 
 const DIVISION_NAMES = {
@@ -53,11 +48,11 @@ const DIVISION_NAMES = {
   1: "I"
 };
 
-let selectedService = "ranked";
+const $ = id => document.getElementById(id);
+
 let latestPrice = 0;
 let latestOrder = null;
-
-const $ = id => document.getElementById(id);
+let toastTimer = null;
 
 function rupiah(value) {
   return new Intl.NumberFormat("id-ID", {
@@ -67,28 +62,29 @@ function rupiah(value) {
   }).format(value);
 }
 
-function rankIsDivisional(rank) {
+function isDivisional(rank) {
   return ["Grandmaster", "Epic", "Legend"].includes(rank);
 }
 
-function rankBase(rank) {
-  return RANK_BASE[rank] ?? 0;
-}
-
 function rankProgress(rank, stars, division) {
-  if (rankIsDivisional(rank)) {
-    // Divisi V dimulai dari 0; setiap divisi memiliki 5 bintang.
+  const count = Number(stars || 0);
+
+  if (isDivisional(rank)) {
     const div = Number(division || 5);
-    return rankBase(rank) + (5 - div) * 5 + Number(stars || 0);
+    return RANK_BASE[rank] + (5 - div) * 5 + count;
   }
 
-  return rankBase(rank) + Number(stars || 0);
+  // Mythic 0–24, Honor 25–49,
+  // Glory 50–99, Immortal 100+
+  return 75 + count;
 }
 
 function rankLabel(rank, division, stars) {
-  if (rankIsDivisional(rank)) {
-    return `${rank} ${DIVISION_NAMES[Number(division)] || "V"}, ${stars} bintang`;
+  if (isDivisional(rank)) {
+    const div = DIVISION_NAMES[Number(division)] || "V";
+    return `${rank} ${div}, ${stars} bintang`;
   }
+
   return `${rank} ${stars} bintang`;
 }
 
@@ -102,173 +98,104 @@ function rankAtProgress(progress) {
   return "Immortal";
 }
 
-function priceForProgress(service, progress) {
-  const rank = rankAtProgress(progress);
-  return PRICES[service]?.[rank] || 0;
-}
-
 function calculatePrice(service, start, target) {
-  if (!PRICES[service] || target <= start) return null;
+  const prices = PRICES[service];
+
+  if (!prices || target <= start) return null;
 
   let total = 0;
 
-  for (let p = start; p < target; p++) {
-    total += priceForProgress(service, p);
+  for (let progress = start; progress < target; progress++) {
+    const rank = rankAtProgress(progress);
+    total += prices[rank] || 0;
   }
 
   return total;
 }
 
 function updateImage(id, rank) {
-  const img = $(id);
-  if (!img) return;
+  const image = $(id);
+  if (!image) return;
 
-  img.src = RANK_IMAGES[rank] || "";
-  img.alt = rank;
-  img.onerror = () => {
-    img.style.display = "none";
+  image.onerror = () => {
+    image.onerror = null;
+    image.style.visibility = "hidden";
   };
-  img.style.display = "block";
+
+  image.onload = () => {
+    image.style.visibility = "visible";
+  };
+
+  image.src = RANK_IMAGES[rank];
+  image.alt = `Rank ${rank}`;
+  image.style.visibility = "visible";
 }
 
 function updateRankControls(which) {
-  const rank = $(`${which}Rank`)?.value;
-  if (!rank) return;
-
-  const isDivisional = rankIsDivisional(rank);
-  const divisionWrap = $(`${which}DivisionWrap`);
+  const rank = $(`${which}Rank`).value;
   const stars = $(`${which}Stars`);
+  const divisionWrap = $(`${which}DivisionWrap`);
   const hint = $(`${which}StarHint`);
 
-  if (divisionWrap) {
-    divisionWrap.hidden = !isDivisional;
-  }
+  const divisional = isDivisional(rank);
 
-  if (!stars) return;
+  divisionWrap.hidden = !divisional;
 
-  if (isDivisional) {
+  if (divisional) {
     stars.min = "0";
     stars.max = "5";
+
     if (Number(stars.value) > 5) stars.value = "5";
-    if (hint) hint.textContent = "0–5 bintang per divisi";
+    if (Number(stars.value) < 0) stars.value = "0";
+
+    hint.textContent = "0–5 bintang per divisi";
   } else {
-    const maximum = rank === "Mythic" ? 24 :
-      rank === "Honor" ? 49 :
-      rank === "Glory" ? 99 : 999;
+    let min = 0;
+    let max = 24;
 
-    stars.min = rank === "Honor" ? "25" :
-      rank === "Glory" ? "50" :
-      rank === "Immortal" ? "100" : "0";
-
-    stars.max = String(maximum);
-
-    if (rank === "Mythic" && Number(stars.value) > 24) {
-      stars.value = "24";
-    }
-    if (rank === "Honor" && Number(stars.value) < 25) {
-      stars.value = "25";
-    }
-    if (rank === "Honor" && Number(stars.value) > 49) {
-      stars.value = "49";
-    }
-    if (rank === "Glory" && Number(stars.value) < 50) {
-      stars.value = "50";
-    }
-    if (rank === "Glory" && Number(stars.value) > 99) {
-      stars.value = "99";
-    }
-    if (rank === "Immortal" && Number(stars.value) < 100) {
-      stars.value = "100";
+    if (rank === "Honor") {
+      min = 25;
+      max = 49;
+    } else if (rank === "Glory") {
+      min = 50;
+      max = 99;
+    } else if (rank === "Immortal") {
+      min = 100;
+      max = 999;
     }
 
-    if (hint) {
-      hint.textContent =
-        rank === "Mythic" ? "Mythic: 0–24 bintang" :
-        rank === "Honor" ? "Honor: 25–49 bintang" :
-        rank === "Glory" ? "Glory: 50–99 bintang" :
-        "Immortal: 100 bintang ke atas";
-    }
+    stars.min = String(min);
+    stars.max = String(max);
+
+    let value = Number(stars.value);
+
+    if (!Number.isFinite(value)) value = min;
+    if (value < min) value = min;
+    if (value > max) value = max;
+
+    stars.value = String(value);
+
+    hint.textContent =
+      rank === "Mythic" ? "Mythic: 0–24 bintang" :
+      rank === "Honor" ? "Honor: 25–49 bintang" :
+      rank === "Glory" ? "Glory: 50–99 bintang" :
+      "Immortal: 100 bintang ke atas";
   }
 
   updateImage(`${which}RankImage`, rank);
 }
 
-function getCurrentProgress() {
+function getProgress(which) {
   return rankProgress(
-    $("currentRank").value,
-    $("currentStars").value,
-    $("currentDivision")?.value
+    $(`${which}Rank`).value,
+    $(`${which}Stars`).value,
+    $(`${which}Division`).value
   );
-}
-
-function getTargetProgress() {
-  return rankProgress(
-    $("targetRank").value,
-    $("targetStars").value,
-    $("targetDivision")?.value
-  );
-}
-
-function updateServiceButtons() {
-  document.querySelectorAll("[data-service]").forEach(button => {
-    const active = button.dataset.service === selectedService;
-    button.classList.toggle("active", active);
-    button.setAttribute("aria-pressed", String(active));
-  });
-
-  const name = $("selectedName");
-  if (name) {
-    name.value = selectedService === "ranked" ? "Joki Ranked" :
-      selectedService === "gendong" ? "Joki Gendong" :
-      "Joki Classic";
-  }
-}
-
-function updateCalculator() {
-  updateRankControls("current");
-  updateRankControls("target");
-
-  const currentRank = $("currentRank").value;
-  const targetRank = $("targetRank").value;
-  const start = getCurrentProgress();
-  const target = getTargetProgress();
-
-  updateImage("currentRankImage", currentRank);
-  updateImage("targetRankImage", targetRank);
-
-  if (selectedService === "classic") {
-    latestPrice = 0;
-    $("rankPrice").textContent = "Hubungi admin";
-    $("rankMessage").textContent = "Harga Joki Classic dikonfirmasi admin.";
-    return;
-  }
-
-  if (target <= start) {
-    latestPrice = 0;
-    $("rankPrice").textContent = "Target tidak valid";
-    $("rankMessage").textContent = "Rank tujuan harus lebih tinggi dari rank awal.";
-    return;
-  }
-
-  latestPrice = calculatePrice(selectedService, start, target);
-
-  if (latestPrice === null) {
-    $("rankPrice").textContent = "Hubungi admin";
-    return;
-  }
-
-  $("rankPrice").textContent = rupiah(latestPrice);
-  $("rankMessage").textContent =
-    `${rankLabel(currentRank, $("currentDivision")?.value, $("currentStars").value)} → ` +
-    `${rankLabel(targetRank, $("targetDivision")?.value, $("targetStars").value)}`;
-
-  if ($("selectedPrice")) {
-    $("selectedPrice").value = rupiah(latestPrice);
-  }
 }
 
 function toast(message) {
   const element = $("toast");
+
   if (!element) {
     alert(message);
     return;
@@ -276,104 +203,131 @@ function toast(message) {
 
   element.textContent = message;
   element.classList.add("show");
-  setTimeout(() => element.classList.remove("show"), 2500);
+
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => {
+    element.classList.remove("show");
+  }, 2800);
+}
+
+function updateCalculator() {
+  updateRankControls("current");
+  updateRankControls("target");
+
+  const startRank = $("currentRank").value;
+  const targetRank = $("targetRank").value;
+
+  const start = getProgress("current");
+  const target = getProgress("target");
+
+  const service = $("serviceType").value;
+
+  const startLabel = rankLabel(
+    startRank,
+    $("currentDivision").value,
+    $("currentStars").value
+  );
+
+  const targetLabel = rankLabel(
+    targetRank,
+    $("targetDivision").value,
+    $("targetStars").value
+  );
+
+  $("rankMessage").textContent = `${startLabel} → ${targetLabel}`;
+
+  if (target <= start) {
+    latestPrice = 0;
+    $("rankPrice").textContent = "Target tidak valid";
+    $("rankMessage").textContent =
+      "Rank tujuan harus lebih tinggi dari rank awal.";
+    return;
+  }
+
+  latestPrice = calculatePrice(service, start, target);
+
+  $("rankPrice").textContent = rupiah(latestPrice);
+}
+
+function openPaymentModal() {
+  $("paymentModal").hidden = false;
+  document.body.classList.add("modal-open");
+  $("closePaymentModal").focus();
+}
+
+function closePaymentModal() {
+  $("paymentModal").hidden = true;
+  document.body.classList.remove("modal-open");
 }
 
 function makeWhatsAppLink(message) {
   return `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(message)}`;
 }
 
-function openWhatsApp(message) {
-  window.location.href = makeWhatsAppLink(message);
-}
+function createOrder(event) {
+  event.preventDefault();
 
-function setupStars(which) {
-  $(`${which}Minus`)?.addEventListener("click", () => {
-    const input = $(`${which}Stars`);
-    const min = Number(input.min || 0);
-    input.value = String(Math.max(min, Number(input.value || 0) - 1));
-    updateCalculator();
-  });
-
-  $(`${which}Plus`)?.addEventListener("click", () => {
-    const input = $(`${which}Stars`);
-    const max = Number(input.max || 999);
-    input.value = String(Math.min(max, Number(input.value || 0) + 1));
-    updateCalculator();
-  });
-
-  [`${which}Rank`, `${which}Division`, `${which}Stars`].forEach(id => {
-    $(id)?.addEventListener("change", updateCalculator);
-    $(id)?.addEventListener("input", updateCalculator);
-  });
-}
-
-function createOrder() {
   const playerId = $("playerId").value.trim();
-  const serverId = $("serverId").value.trim();
   const playerName = $("playerName").value.trim();
-  const contact = $("contact").value.trim();
   const notes = $("notes").value.trim();
+  const service = $("serviceType").value;
 
-  if (!playerId || !serverId || !playerName) {
-    toast("Isi ID Game, Server ID, dan nama akun terlebih dahulu.");
-    $("order").scrollIntoView({ behavior: "smooth" });
+  if (!playerId || !playerName) {
+    toast("Isi ID game dan nama akun terlebih dahulu.");
     return;
   }
 
   updateCalculator();
 
-  if (selectedService !== "classic" && latestPrice <= 0) {
-    toast("Periksa rank awal dan rank tujuan.");
+  const start = getProgress("current");
+  const target = getProgress("target");
+
+  if (target <= start || latestPrice <= 0) {
+    toast("Rank tujuan harus lebih tinggi dari rank awal.");
     return;
   }
 
-  const currentRank = $("currentRank").value;
+  const startRank = $("currentRank").value;
   const targetRank = $("targetRank").value;
-  const currentLabel = rankLabel(
-    currentRank,
-    $("currentDivision")?.value,
+
+  const startLabel = rankLabel(
+    startRank,
+    $("currentDivision").value,
     $("currentStars").value
   );
+
   const targetLabel = rankLabel(
     targetRank,
-    $("targetDivision")?.value,
+    $("targetDivision").value,
     $("targetStars").value
   );
 
-  const serviceName = selectedService === "ranked" ? "Joki Ranked" :
-    selectedService === "gendong" ? "Joki Gendong" : "Joki Classic";
-
-  const priceText = selectedService === "classic"
-    ? "Konfirmasi admin"
-    : rupiah(latestPrice);
+  const serviceName =
+    service === "gendong" ? "Joki Gendong" : "Joki Rank";
 
   latestOrder = {
     serviceName,
-    currentLabel,
-    targetLabel,
     playerId,
-    serverId,
     playerName,
-    contact,
     notes,
-    priceText,
-    price: latestPrice
+    startLabel,
+    targetLabel,
+    price: latestPrice,
+    priceText: rupiah(latestPrice)
   };
 
   $("paymentOrderSummary").textContent =
-    `${serviceName} | ${currentLabel} → ${targetLabel} | ` +
-    `ID ${playerId} (${serverId}) | Akun ${playerName}`;
+    `Layanan: ${serviceName}\n` +
+    `ID Game: ${playerId}\n` +
+    `Nama akun: ${playerName}\n` +
+    `Rank awal: ${startLabel}\n` +
+    `Rank tujuan: ${targetLabel}\n` +
+    `Catatan: ${notes || "-"}\n\n` +
+    `Total: ${rupiah(latestPrice)}`;
 
-  $("paymentTotal").textContent = priceText;
-  $("paymentPanel").hidden = false;
-  $("paymentPanel").scrollIntoView({ behavior: "smooth", block: "start" });
+  $("paymentTotal").textContent = rupiah(latestPrice);
 
-  const selectedName = $("selectedName");
-  const selectedPrice = $("selectedPrice");
-
-  if (selectedName) selectedName.value = serviceName;
-  if (selectedPrice) selectedPrice.value = priceText;
+  openPaymentModal();
 }
 
 function confirmPayment() {
@@ -382,69 +336,102 @@ function confirmPayment() {
     return;
   }
 
-  const o = latestOrder;
+  const order = latestOrder;
+
   const message =
-    `Halo Min, saya ingin konfirmasi pesanan LIXERA JOKI.\n\n` +
-    `Layanan: ${o.serviceName}\n` +
-    `Rank awal: ${o.currentLabel}\n` +
-    `Rank tujuan: ${o.targetLabel}\n` +
-    `ID Game: ${o.playerId}\n` +
-    `Server ID: ${o.serverId}\n` +
-    `Nama akun: ${o.playerName}\n` +
-    `Kontak: ${o.contact || "-"}\n` +
-    `Harga: ${o.priceText}\n` +
-    `Catatan: ${o.notes || "-"}\n\n` +
-    `Saya sudah melakukan pembayaran / ingin konfirmasi pembayaran. ` +
-    `Mohon cek dan konfirmasi pesanan saya. Terima kasih.`;
+    `Halo Admin LIXERA JOKI, saya ingin konfirmasi pesanan.\n\n` +
+    `Layanan: ${order.serviceName}\n` +
+    `ID Game: ${order.playerId}\n` +
+    `Nama akun: ${order.playerName}\n` +
+    `Rank awal: ${order.startLabel}\n` +
+    `Rank tujuan: ${order.targetLabel}\n` +
+    `Total: ${order.priceText}\n` +
+    `Catatan: ${order.notes || "-"}\n\n` +
+    `Saya sudah melakukan pembayaran melalui QRIS. ` +
+    `Mohon konfirmasi pesanan saya. Saya akan mengirim bukti pembayaran di chat ini.`;
 
-  openWhatsApp(message);
+  window.location.href = makeWhatsAppLink(message);
 }
 
-function setupServices() {
-  document.querySelectorAll("[data-service]").forEach(button => {
-    button.addEventListener("click", () => {
-      selectedService = button.dataset.service;
-      updateServiceButtons();
-      updateCalculator();
+function setupStarButtons(which) {
+  $(`${which}Minus`).addEventListener("click", () => {
+    const input = $(`${which}Stars`);
+    const min = Number(input.min || 0);
 
-      $("calculator").scrollIntoView({ behavior: "smooth" });
+    input.value = String(
+      Math.max(min, Number(input.value || 0) - 1)
+    );
+
+    updateCalculator();
+  });
+
+  $(`${which}Plus`).addEventListener("click", () => {
+    const input = $(`${which}Stars`);
+    const max = Number(input.max || 999);
+
+    input.value = String(
+      Math.min(max, Number(input.value || 0) + 1)
+    );
+
+    updateCalculator();
+  });
+
+  [`${which}Rank`, `${which}Division`, `${which}Stars`]
+    .forEach(id => {
+      $(id).addEventListener("input", updateCalculator);
+      $(id).addEventListener("change", updateCalculator);
     });
-  });
-}
-
-function setupForm() {
-  $("orderForm")?.addEventListener("submit", event => {
-    event.preventDefault();
-    createOrder();
-  });
-
-  $("orderRankButton")?.addEventListener("click", () => {
-    $("order").scrollIntoView({ behavior: "smooth", block: "start" });
-    toast("Lengkapi data akun untuk membuat pesanan.");
-  });
-
-  $("confirmPaymentButton")?.addEventListener("click", confirmPayment);
 }
 
 function setupNavigation() {
   document.querySelectorAll('a[href^="#"]').forEach(link => {
     link.addEventListener("click", event => {
-      const target = document.querySelector(link.getAttribute("href"));
+      const target = document.querySelector(
+        link.getAttribute("href")
+      );
+
       if (!target) return;
 
       event.preventDefault();
-      target.scrollIntoView({ behavior: "smooth", block: "start" });
+
+      target.scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
     });
   });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  setupStars("current");
-  setupStars("target");
-  setupServices();
-  setupForm();
+  setupStarButtons("current");
+  setupStarButtons("target");
+
+  $("serviceType").addEventListener("change", updateCalculator);
+
+  $("orderForm").addEventListener("submit", createOrder);
+
+  $("confirmPaymentButton").addEventListener(
+    "click",
+    confirmPayment
+  );
+
+  $("closePaymentModal").addEventListener(
+    "click",
+    closePaymentModal
+  );
+
+  $("paymentBackdrop").addEventListener(
+    "click",
+    closePaymentModal
+  );
+
+  document.addEventListener("keydown", event => {
+    if (event.key === "Escape" && !$("paymentModal").hidden) {
+      closePaymentModal();
+    }
+  });
+
   setupNavigation();
-  updateServiceButtons();
   updateCalculator();
 });
-        
+      
