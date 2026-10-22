@@ -5,58 +5,50 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#050914">
-  <meta name="description" content="LIXERA JOKI - Jasa joki Mobile Legends">
   <title>LIXERA JOKI</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="navbar">
-    <a class="logo" href="#home">
-      <img src="Logolixera.png" alt="LIXERA">
+    <a href="#home" class="logo">
+      <img src="Logolixera.png" alt="Logo LS">
       <span>LIXERA <b>JOKI</b></span>
     </a>
-    <a class="btn btn-small" href="#calculator">Hitung Harga</a>
+    <a href="#order" class="btn btn-small">ORDER ↗</a>
   </header>
 
   <main>
     <section class="hero" id="home">
       <p class="eyebrow">MOBILE LEGENDS SERVICE</p>
       <h1>PUSH YOUR RANK.<br><span>WE HANDLE IT.</span></h1>
-      <p>Joki Ranked dan Joki Gendong dengan perhitungan harga per bintang. Pilih rank dan buat pesanan dengan mudah.</p>
-      <a class="btn" href="#services">PILIH LAYANAN ↗</a>
+      <p>Joki Rank dan Joki Gendong. Pilih layanan, atur rank, cek harga, lalu bayar menggunakan QRIS.</p>
+      <a href="#order" class="btn">MULAI ORDER ↘</a>
     </section>
 
-    <section class="section" id="services">
-      <p class="eyebrow">OUR SERVICES</p>
-      <h2>Pilih Layanan</h2>
-      <div class="service-grid">
-        <button type="button" class="service-card active" data-service="ranked" aria-pressed="true">
-          <img src="ruby.jpg" alt="Joki Ranked">
-          <h3>Joki Ranked</h3>
-          <p>Push rank sesuai target</p>
-        </button>
-        <button type="button" class="service-card" data-service="gendong" aria-pressed="false">
-          <img src="fany.jpg" alt="Joki Gendong">
-          <h3>Joki Gendong</h3>
-          <p>Mabar bersama joki</p>
-        </button>
-        <button type="button" class="service-card" data-service="classic" aria-pressed="false">
-          <img src="layla.jpg" alt="Joki Classic">
-          <h3>Joki Classic</h3>
-          <p>Harga dikonfirmasi admin</p>
-        </button>
-      </div>
-    </section>
+    <section class="section" id="order">
+      <p class="eyebrow">LIXERA ORDER SYSTEM</p>
+      <h2>Buat Pesanan</h2>
+      <p class="muted">Lengkapi data akun, pilih layanan, dan tentukan target rank.</p>
 
-    <section class="section" id="calculator">
-      <p class="eyebrow">PRICE CALCULATOR</p>
-      <h2>Kalkulator Rank</h2>
-      <p class="muted">Pilih rank awal dan tujuan untuk melihat estimasi harga.</p>
+      <form id="orderForm" class="order-form">
+        <label for="serviceType">Pilih layanan</label>
+        <select id="serviceType" required>
+          <option value="ranked">Joki Rank</option>
+          <option value="gendong">Joki Gendong</option>
+        </select>
 
-      <div class="calculator">
+        <label for="playerId">ID Game</label>
+        <input id="playerId" placeholder="Masukkan ID Mobile Legends" required>
+
+        <label for="playerName">Nama akun game</label>
+        <input id="playerName" placeholder="Masukkan nama akun" required>
+
+        <label for="notes">Catatan (opsional)</label>
+        <textarea id="notes" placeholder="Contoh: jam main atau permintaan khusus"></textarea>
+
         <div class="rank-fields">
           <div class="rank-field">
-            <label for="currentRank">Rank Awal</label>
+            <label for="currentRank">Rank awal</label>
             <img id="currentRankImage" src="Granpmaster.jpg" alt="Rank awal">
             <select id="currentRank">
               <option value="Grandmaster">Grandmaster</option>
@@ -69,7 +61,7 @@
             </select>
 
             <div id="currentDivisionWrap">
-              <label for="currentDivision">Divisi awal</label>
+              <label for="currentDivision">Divisi</label>
               <select id="currentDivision">
                 <option value="5">V</option>
                 <option value="4">IV</option>
@@ -79,17 +71,17 @@
               </select>
             </div>
 
-            <label for="currentStars">Bintang awal</label>
+            <label for="currentStars">Bintang</label>
             <div class="star-control">
               <button id="currentMinus" type="button">−</button>
-              <input id="currentStars" type="number" min="0" max="5" value="0" inputmode="numeric">
+              <input id="currentStars" type="number" min="0" max="5" value="0" required>
               <button id="currentPlus" type="button">+</button>
             </div>
-            <p class="muted" id="currentStarHint">0–5 bintang per divisi</p>
+            <p id="currentStarHint" class="muted">0–5 bintang per divisi</p>
           </div>
 
           <div class="rank-field">
-            <label for="targetRank">Rank Tujuan</label>
+            <label for="targetRank">Rank tujuan</label>
             <img id="targetRankImage" src="Mythic.jpg" alt="Rank tujuan">
             <select id="targetRank">
               <option value="Grandmaster">Grandmaster</option>
@@ -102,7 +94,7 @@
             </select>
 
             <div id="targetDivisionWrap" hidden>
-              <label for="targetDivision">Divisi tujuan</label>
+              <label for="targetDivision">Divisi</label>
               <select id="targetDivision">
                 <option value="5">V</option>
                 <option value="4">IV</option>
@@ -112,62 +104,30 @@
               </select>
             </div>
 
-            <label for="targetStars">Bintang tujuan</label>
+            <label for="targetStars">Bintang</label>
             <div class="star-control">
               <button id="targetMinus" type="button">−</button>
-              <input id="targetStars" type="number" min="0" max="24" value="10" inputmode="numeric">
+              <input id="targetStars" type="number" min="0" max="24" value="10" required>
               <button id="targetPlus" type="button">+</button>
             </div>
-            <p class="muted" id="targetStarHint">Mythic: 0–24 bintang</p>
+            <p id="targetStarHint" class="muted">Mythic: 0–24 bintang</p>
           </div>
         </div>
 
-        <label class="express-option" for="expressCheck">
-          <input id="expressCheck" type="checkbox">
-          Prioritas order (biaya dikonfirmasi admin)
-        </label>
-
         <div class="price-result">
           <p>ESTIMASI TOTAL</p>
-          <h3 id="rankPrice">Menghitung...</h3>
-          <p id="rankMessage">Pilih rank awal dan tujuan.</p>
+          <h3 id="rankPrice">Rp0</h3>
+          <p id="rankMessage">Atur rank awal dan tujuan.</p>
         </div>
 
-        <button class="btn btn-full" id="orderRankButton" type="button">LANJUT ORDER ↗</button>
-      </div>
-    </section>
-
-    <section class="section" id="order">
-      <p class="eyebrow">ORDER DETAILS</p>
-      <h2>Data Pemesanan</h2>
-      <form id="orderForm" class="order-form">
-        <label for="selectedName">Layanan</label>
-        <input id="selectedName" name="selectedName" value="Joki Ranked" readonly>
-
-        <label for="selectedPrice">Estimasi harga</label>
-        <input id="selectedPrice" name="selectedPrice" value="Dihitung dari kalkulator" readonly>
-
-        <label for="playerId">ID Game</label>
-        <input id="playerId" name="playerId" placeholder="ID Mobile Legends" required>
-
-        <label for="serverId">Server ID</label>
-        <input id="serverId" name="serverId" placeholder="Contoh: 1234" required>
-
-        <label for="playerName">Nama akun game</label>
-        <input id="playerName" name="playerName" placeholder="Nama akun kamu" required>
-
-        <label for="contact">Nomor WhatsApp kamu</label>
-        <input id="contact" name="contact" placeholder="Nomor aktif (opsional)">
-
-        <label for="notes">Catatan tambahan</label>
-        <textarea id="notes" name="notes" placeholder="Catatan (opsional)"></textarea>
-
-        <button class="btn btn-full" type="submit">BUAT PESANAN ↗</button>
+        <button class="btn btn-full" id="orderButton" type="submit">
+          ORDER SEKARANG ↗
+        </button>
       </form>
     </section>
 
-    <section class="section" id="help">
-      <p class="eyebrow">CONTACT ADMIN</p>
+    <section class="section">
+      <p class="eyebrow">NEED HELP?</p>
       <h2>Butuh Bantuan?</h2>
       <a class="btn btn-full" href="https://wa.me/628818238317" target="_blank" rel="noopener">WHATSAPP ADMIN ↗</a>
     </section>
@@ -180,26 +140,29 @@
 
   <nav class="bottom-nav">
     <a href="#home">Home</a>
-    <a href="#services">Layanan</a>
-    <a href="#calculator">Harga</a>
     <a href="#order">Order</a>
+    <a href="#order">Harga</a>
+    <a href="https://wa.me/628818238317" target="_blank" rel="noopener">Admin</a>
   </nav>
 
-  <!-- POP-UP PEMBAYARAN: tersembunyi sampai pesanan dibuat -->
   <div id="paymentModal" class="payment-modal" hidden>
     <div class="payment-backdrop" id="paymentBackdrop"></div>
     <div class="payment-dialog" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
       <button type="button" id="closePaymentModal" class="modal-close" aria-label="Tutup">✕</button>
+
       <p class="eyebrow">ORDER SUMMARY</p>
       <h2 id="paymentTitle">Pesanan Kamu</h2>
       <div id="paymentOrderSummary" class="order-summary"></div>
+
       <div class="payment-total">
         <span>Total pembayaran</span>
         <strong id="paymentTotal"></strong>
       </div>
-      <p class="muted">Scan QRIS berikut sesuai nominal yang dikonfirmasi admin.</p>
+
+      <p class="muted">Scan QRIS berikut untuk membayar sesuai nominal yang tertera. Jika gambar tidak muncul, hubungi admin.</p>
       <img id="paymentQR" class="payment-image" src="qris-lixera.jpg" alt="QRIS pembayaran LIXERA">
-      <p class="muted">Setelah membayar, tekan tombol konfirmasi ke admin.</p>
+
+      <p class="muted">Setelah membayar, tekan tombol konfirmasi di bawah.</p>
       <button class="btn btn-full" id="confirmPaymentButton" type="button">SUDAH BAYAR — KONFIRMASI WA ↗</button>
     </div>
   </div>
@@ -207,5 +170,5 @@
   <div id="toast" class="toast" role="status"></div>
   <script src="script.js"></script>
 </body>
-  </html>
-  
+              </html>
+              
