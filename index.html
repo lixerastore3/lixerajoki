@@ -5,17 +5,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="theme-color" content="#050914">
-  <title>LIXERA JOKI | Joki Mobile Legends</title>
+  <title>LIXERA JOKI | Mobile Legends</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <header class="header">
   <a class="brand" href="#">
-    <img src="Logolixera.png" alt="Logo LIXERA" class="brand-logo">
+    <img src="Logolixera.png" alt="" class="brand-logo">
     <span>LIXERA <b>JOKI</b></span>
   </a>
-  <a class="header-order" href="#layanan">ORDER SEKARANG</a>
+  <a class="header-order" href="#form-order">ORDER SEKARANG</a>
 </header>
 
 <main>
@@ -24,22 +24,22 @@
     <p class="eyebrow">MOBILE LEGENDS SERVICE</p>
     <h1>NAIK RANK.<br><span>MENANG BARENG.</span></h1>
     <p class="hero-description">
-      Jasa Joki Mobile Legends dengan proses order praktis,
-      harga otomatis, dan konfirmasi langsung ke WhatsApp admin.
+      Jasa Joki Mobile Legends dengan harga otomatis,
+      proses pemesanan praktis, dan konfirmasi WhatsApp.
     </p>
-    <a class="primary-button" href="#layanan">PILIH LAYANAN <span>↗</span></a>
+    <a class="primary-button" href="#layanan">PILIH LAYANAN ↗</a>
   </section>
 
   <section class="services section" id="layanan">
     <div class="section-heading">
       <p class="eyebrow">LAYANAN KAMI</p>
       <h2>PILIH JOKI KAMU</h2>
-      <p>Pilih layanan, isi formulir, lalu buat pesanan.</p>
+      <p>Pilih layanan untuk mulai membuat pesanan.</p>
     </div>
 
     <div class="service-grid">
       <button class="service-card active" type="button" data-service="ranked">
-        <img src="Ruby.jpg" alt="Ruby untuk Joki Rank" class="service-image">
+        <img src="ruby.jpg" alt="" class="service-image">
         <span class="service-tag">01 / RANK PUSH</span>
         <strong>JOKI RANK</strong>
         <span class="service-description">Naikkan rank sesuai targetmu.</span>
@@ -47,10 +47,10 @@
       </button>
 
       <button class="service-card" type="button" data-service="gendong">
-        <img src="Fany.jpg" alt="Fanny untuk Joki Gendong" class="service-image">
+        <img src="fany.jpg" alt="" class="service-image">
         <span class="service-tag">02 / MABAR SERVICE</span>
         <strong>JOKI GENDONG</strong>
-        <span class="service-description">Bermain bersama joki sesuai kesepakatan.</span>
+        <span class="service-description">Main bareng joki sesuai targetmu.</span>
         <span class="service-select">PILIH JOKI GENDONG →</span>
       </button>
     </div>
@@ -60,7 +60,7 @@
     <div class="section-heading">
       <p class="eyebrow">ORDER FORM</p>
       <h2>BUAT PESANAN</h2>
-      <p>Lengkapi data pesanan kamu di bawah ini.</p>
+      <p>Isi data dan tentukan target rank kamu.</p>
     </div>
 
     <form id="orderForm">
@@ -68,7 +68,7 @@
 
       <div class="form-group">
         <label for="customerName">Nama pemesan</label>
-        <input id="customerName" type="text" placeholder="Nama kamu" required>
+        <input id="customerName" type="text" placeholder="Masukkan nama kamu" required>
       </div>
 
       <div id="gendongFields" hidden>
@@ -111,9 +111,9 @@
         <div class="form-group">
           <label for="currentStars">Jumlah bintang</label>
           <div class="star-control">
-            <button type="button" id="currentMinus" aria-label="Kurangi bintang">−</button>
+            <button type="button" id="currentMinus">−</button>
             <input id="currentStars" type="number" min="0" max="24" value="0" required>
-            <button type="button" id="currentPlus" aria-label="Tambah bintang">+</button>
+            <button type="button" id="currentPlus">+</button>
           </div>
           <small id="currentStarHint">Mythic: 0–24 bintang</small>
         </div>
@@ -148,9 +148,9 @@
         <div class="form-group">
           <label for="targetStars">Jumlah bintang</label>
           <div class="star-control">
-            <button type="button" id="targetMinus" aria-label="Kurangi bintang">−</button>
+            <button type="button" id="targetMinus">−</button>
             <input id="targetStars" type="number" min="0" max="24" value="10" required>
-            <button type="button" id="targetPlus" aria-label="Tambah bintang">+</button>
+            <button type="button" id="targetPlus">+</button>
           </div>
           <small id="targetStarHint">Mythic: 0–24 bintang</small>
         </div>
@@ -158,49 +158,52 @@
 
       <div class="form-group">
         <label for="notes">Catatan (opsional)</label>
-        <textarea id="notes" rows="3" placeholder="Tulis catatan tambahan jika ada"></textarea>
+        <textarea id="notes" rows="3" placeholder="Catatan tambahan jika ada"></textarea>
       </div>
 
       <div class="price-box">
         <span>ESTIMASI TOTAL HARGA</span>
         <strong id="rankPrice">Menghitung...</strong>
-        <p id="rankMessage">Pilih rank awal dan rank tujuan.</p>
+        <p id="rankMessage">Pilih rank awal dan tujuan.</p>
       </div>
 
       <button class="primary-button submit-button" id="orderButton" type="submit">
-        ORDER SEKARANG <span>→</span>
+        ORDER SEKARANG →
       </button>
-      <p class="form-footnote">Pastikan rank dan data pesanan sudah benar sebelum melanjutkan.</p>
+      <p class="form-footnote">Periksa detail dan harga sebelum melanjutkan.</p>
     </form>
   </section>
 </main>
 
 <footer class="footer">
-  <img src="Logolixera.png" alt="LIXERA" class="footer-logo">
   <p>LIXERA JOKI — MOBILE LEGENDS SERVICE</p>
-  <small>Harap periksa kembali detail pesanan sebelum membayar.</small>
+  <small>Terima kasih telah memilih LIXERA JOKI.</small>
 </footer>
 
 <div class="payment-modal" id="paymentModal" hidden>
   <div class="payment-backdrop" id="paymentBackdrop"></div>
   <div class="payment-dialog" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
-    <button type="button" class="modal-close" id="closePaymentModal" aria-label="Tutup">×</button>
+    <button type="button" class="modal-close" id="closePaymentModal">×</button>
     <p class="eyebrow">PAYMENT</p>
     <h2 id="paymentTitle">SELESAIKAN PEMBAYARAN</h2>
-    <p class="payment-instruction">Scan QRIS di bawah sesuai total pesanan kamu.</p>
+    <p class="payment-instruction">Scan QRIS sesuai total pesanan kamu.</p>
+
     <div class="payment-total">
       <span>Total pembayaran</span>
       <strong id="paymentTotal">Rp0</strong>
     </div>
-    <img src="qris-lixera.jpg" alt="QRIS pembayaran LIXERA" class="payment-image" id="paymentQR">
+
+    <img src="qris-lixera.jpg" alt="" class="payment-image" id="paymentQR">
+
     <div class="payment-summary">
       <h3>RINGKASAN PESANAN</h3>
       <p id="paymentOrderSummary"></p>
     </div>
+
     <button type="button" class="primary-button submit-button" id="confirmPaymentButton">
       KONFIRMASI VIA WHATSAPP ↗
     </button>
-    <p class="form-footnote">Setelah membayar, kirim bukti pembayaran di chat WhatsApp admin.</p>
+    <p class="form-footnote">Setelah membayar, kirim bukti pembayaran di WhatsApp admin.</p>
   </div>
 </div>
 
@@ -208,5 +211,5 @@
 
 <script src="script.js"></script>
 </body>
-  </html>
-                                
+                       </html>
+                       
