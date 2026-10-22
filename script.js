@@ -24,28 +24,18 @@ const PRICES = {
   }
 };
 
-const RANK_IMAGES = {
-  Grandmaster: "Granpmaster.jpg",
-  Epic: "Efic.jpg",
-  Legend: "Legend.jpg",
-  Mythic: "Mythic.jpg",
-  Honor: "Honor.jpg",
-  Glory: "Glory.jpg",
-  Immortal: "Immortal.jpg"
-};
-
-const RANK_BASE = {
-  Grandmaster: 0,
-  Epic: 25,
-  Legend: 50
-};
-
 const DIVISION_NAMES = {
   5: "V",
   4: "IV",
   3: "III",
   2: "II",
   1: "I"
+};
+
+const RANK_BASE = {
+  Grandmaster: 0,
+  Epic: 25,
+  Legend: 50
 };
 
 const $ = id => document.getElementById(id);
@@ -74,18 +64,22 @@ function rankProgress(rank, stars, division) {
     return RANK_BASE[rank] + (5 - div) * 5 + count;
   }
 
-  // Mythic 0–24, Honor 25–49,
-  // Glory 50–99, Immortal 100+
   return 75 + count;
 }
 
 function rankLabel(rank, division, stars) {
+  const rankNames = {
+    Honor: "Mythical Honor",
+    Glory: "Mythical Glory",
+    Immortal: "Mythical Immortal"
+  };
+
   if (isDivisional(rank)) {
     const div = DIVISION_NAMES[Number(division)] || "V";
     return `${rank} ${div}, ${stars} bintang`;
   }
 
-  return `${rank} ${stars} bintang`;
+  return `${rankNames[rank] || rank} ${stars} bintang`;
 }
 
 function rankAtProgress(progress) {
@@ -101,7 +95,7 @@ function rankAtProgress(progress) {
 function calculatePrice(service, start, target) {
   const prices = PRICES[service];
 
-  if (!prices || target <= start) return null;
+  if (!prices || target <= start) return 0;
 
   let total = 0;
 
@@ -113,22 +107,22 @@ function calculatePrice(service, start, target) {
   return total;
 }
 
-function updateImage(id, rank) {
-  const image = $(id);
-  if (!image) return;
+function toast(message) {
+  const element = $("toast");
 
-  image.onerror = () => {
-    image.onerror = null;
-    image.style.visibility = "hidden";
-  };
+  if (!element) {
+    alert(message);
+    return;
+  }
 
-  image.onload = () => {
-    image.style.visibility = "visible";
-  };
+  element.textContent = message;
+  element.classList.add("show");
 
-  image.src = RANK_IMAGES[rank];
-  image.alt = `Rank ${rank}`;
-  image.style.visibility = "visible";
+  clearTimeout(toastTimer);
+
+  toastTimer = setTimeout(() => {
+    element.classList.remove("show");
+  }, 2800);
 }
 
 function updateRankControls(which) {
@@ -149,40 +143,43 @@ function updateRankControls(which) {
     if (Number(stars.value) < 0) stars.value = "0";
 
     hint.textContent = "0–5 bintang per divisi";
-  } else {
-    let min = 0;
-    let max = 24;
-
-    if (rank === "Honor") {
-      min = 25;
-      max = 49;
-    } else if (rank === "Glory") {
-      min = 50;
-      max = 99;
-    } else if (rank === "Immortal") {
-      min = 100;
-      max = 999;
-    }
-
-    stars.min = String(min);
-    stars.max = String(max);
-
-    let value = Number(stars.value);
-
-    if (!Number.isFinite(value)) value = min;
-    if (value < min) value = min;
-    if (value > max) value = max;
-
-    stars.value = String(value);
-
-    hint.textContent =
-      rank === "Mythic" ? "Mythic: 0–24 bintang" :
-      rank === "Honor" ? "Honor: 25–49 bintang" :
-      rank === "Glory" ? "Glory: 50–99 bintang" :
-      "Immortal: 100 bintang ke atas";
+    return;
   }
 
-  updateImage(`${which}RankImage`, rank);
+  let min = 0;
+  let max = 24;
+
+  if (rank === "Honor") {
+    min = 25;
+    max = 49;
+  } else if (rank === "Glory") {
+    min = 50;
+    max = 99;
+  } else if (rank === "Immortal") {
+    min = 100;
+    max = 999;
+  }
+
+  stars.min = String(min);
+  stars.max = String(max);
+
+  let value = Number(stars.value);
+
+  if (!Number.isFinite(value)) value = min;
+  if (value < min) value = min;
+  if (value > max) value = max;
+
+  stars.value = String(value);
+
+  if (rank === "Mythic") {
+    hint.textContent = "Mythic: 0–24 bintang";
+  } else if (rank === "Honor") {
+    hint.textContent = "Honor: 25–49 bintang";
+  } else if (rank === "Glory") {
+    hint.textContent = "Glory: 50–99 bintang";
+  } else {
+    hint.textContent = "Immortal: 100 bintang ke atas";
+  }
 }
 
 function getProgress(which) {
@@ -193,43 +190,22 @@ function getProgress(which) {
   );
 }
 
-function toast(message) {
-  const element = $("toast");
-
-  if (!element) {
-    alert(message);
-    return;
-  }
-
-  element.textContent = message;
-  element.classList.add("show");
-
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    element.classList.remove("show");
-  }, 2800);
-}
-
 function updateCalculator() {
   updateRankControls("current");
   updateRankControls("target");
 
-  const startRank = $("currentRank").value;
-  const targetRank = $("targetRank").value;
-
   const start = getProgress("current");
   const target = getProgress("target");
-
   const service = $("serviceType").value;
 
   const startLabel = rankLabel(
-    startRank,
+    $("currentRank").value,
     $("currentDivision").value,
     $("currentStars").value
   );
 
   const targetLabel = rankLabel(
-    targetRank,
+    $("targetRank").value,
     $("targetDivision").value,
     $("targetStars").value
   );
@@ -245,14 +221,31 @@ function updateCalculator() {
   }
 
   latestPrice = calculatePrice(service, start, target);
-
   $("rankPrice").textContent = rupiah(latestPrice);
+}
+
+function selectService(service) {
+  $("serviceType").value = service;
+
+  const isGendong = service === "gendong";
+
+  $("gendongFields").hidden = !isGendong;
+  $("playerId").required = isGendong;
+  $("playerName").required = isGendong;
+
+  document.querySelectorAll(".service-card").forEach(card => {
+    card.classList.toggle(
+      "active",
+      card.dataset.service === service
+    );
+  });
+
+  updateCalculator();
 }
 
 function openPaymentModal() {
   $("paymentModal").hidden = false;
   document.body.classList.add("modal-open");
-  $("closePaymentModal").focus();
 }
 
 function closePaymentModal() {
@@ -260,20 +253,22 @@ function closePaymentModal() {
   document.body.classList.remove("modal-open");
 }
 
-function makeWhatsAppLink(message) {
-  return `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(message)}`;
-}
-
 function createOrder(event) {
   event.preventDefault();
 
+  const customerName = $("customerName").value.trim();
+  const service = $("serviceType").value;
   const playerId = $("playerId").value.trim();
   const playerName = $("playerName").value.trim();
   const notes = $("notes").value.trim();
-  const service = $("serviceType").value;
 
-  if (!playerId || !playerName) {
-    toast("Isi ID game dan nama akun terlebih dahulu.");
+  if (!customerName) {
+    toast("Isi nama pemesan terlebih dahulu.");
+    return;
+  }
+
+  if (service === "gendong" && (!playerId || !playerName)) {
+    toast("Isi ID Game dan Name ML terlebih dahulu.");
     return;
   }
 
@@ -287,17 +282,14 @@ function createOrder(event) {
     return;
   }
 
-  const startRank = $("currentRank").value;
-  const targetRank = $("targetRank").value;
-
   const startLabel = rankLabel(
-    startRank,
+    $("currentRank").value,
     $("currentDivision").value,
     $("currentStars").value
   );
 
   const targetLabel = rankLabel(
-    targetRank,
+    $("targetRank").value,
     $("targetDivision").value,
     $("targetStars").value
   );
@@ -307,24 +299,33 @@ function createOrder(event) {
 
   latestOrder = {
     serviceName,
+    customerName,
     playerId,
     playerName,
-    notes,
     startLabel,
     targetLabel,
+    notes,
     price: latestPrice,
     priceText: rupiah(latestPrice)
   };
 
-  $("paymentOrderSummary").textContent =
+  let summary =
     `Layanan: ${serviceName}\n` +
-    `ID Game: ${playerId}\n` +
-    `Nama akun: ${playerName}\n` +
+    `Nama pemesan: ${customerName}\n`;
+
+  if (service === "gendong") {
+    summary +=
+      `ID Game: ${playerId}\n` +
+      `Name ML: ${playerName}\n`;
+  }
+
+  summary +=
     `Rank awal: ${startLabel}\n` +
     `Rank tujuan: ${targetLabel}\n` +
     `Catatan: ${notes || "-"}\n\n` +
-    `Total: ${rupiah(latestPrice)}`;
+    `TOTAL HARGA: ${rupiah(latestPrice)}`;
 
+  $("paymentOrderSummary").textContent = summary;
   $("paymentTotal").textContent = rupiah(latestPrice);
 
   openPaymentModal();
@@ -338,19 +339,28 @@ function confirmPayment() {
 
   const order = latestOrder;
 
-  const message =
+  let message =
     `Halo Admin LIXERA JOKI, saya ingin konfirmasi pesanan.\n\n` +
     `Layanan: ${order.serviceName}\n` +
-    `ID Game: ${order.playerId}\n` +
-    `Nama akun: ${order.playerName}\n` +
+    `Nama pemesan: ${order.customerName}\n`;
+
+  if (order.serviceName === "Joki Gendong") {
+    message +=
+      `ID Game: ${order.playerId}\n` +
+      `Name ML: ${order.playerName}\n`;
+  }
+
+  message +=
     `Rank awal: ${order.startLabel}\n` +
     `Rank tujuan: ${order.targetLabel}\n` +
-    `Total: ${order.priceText}\n` +
-    `Catatan: ${order.notes || "-"}\n\n` +
-    `Saya sudah melakukan pembayaran melalui QRIS. ` +
-    `Mohon konfirmasi pesanan saya. Saya akan mengirim bukti pembayaran di chat ini.`;
+    `Catatan: ${order.notes || "-"}\n` +
+    `TOTAL HARGA: ${order.priceText}\n\n` +
+    `Saya ingin memesan layanan tersebut. Mohon konfirmasi pesanan saya.`;
 
-  window.location.href = makeWhatsAppLink(message);
+  const url =
+    `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(message)}`;
+
+  window.open(url, "_blank");
 }
 
 function setupStarButtons(which) {
@@ -376,29 +386,13 @@ function setupStarButtons(which) {
     updateCalculator();
   });
 
-  [`${which}Rank`, `${which}Division`, `${which}Stars`]
-    .forEach(id => {
-      $(id).addEventListener("input", updateCalculator);
-      $(id).addEventListener("change", updateCalculator);
-    });
-}
-
-function setupNavigation() {
-  document.querySelectorAll('a[href^="#"]').forEach(link => {
-    link.addEventListener("click", event => {
-      const target = document.querySelector(
-        link.getAttribute("href")
-      );
-
-      if (!target) return;
-
-      event.preventDefault();
-
-      target.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-    });
+  [
+    `${which}Rank`,
+    `${which}Division`,
+    `${which}Stars`
+  ].forEach(id => {
+    $(id).addEventListener("input", updateCalculator);
+    $(id).addEventListener("change", updateCalculator);
   });
 }
 
@@ -406,8 +400,13 @@ document.addEventListener("DOMContentLoaded", () => {
   setupStarButtons("current");
   setupStarButtons("target");
 
-  $("serviceType").addEventListener("change", updateCalculator);
+  document.querySelectorAll(".service-card").forEach(card => {
+    card.addEventListener("click", () => {
+      selectService(card.dataset.service);
+    });
+  });
 
+  $("serviceType").addEventListener("change", updateCalculator);
   $("orderForm").addEventListener("submit", createOrder);
 
   $("confirmPaymentButton").addEventListener(
@@ -426,12 +425,15 @@ document.addEventListener("DOMContentLoaded", () => {
   );
 
   document.addEventListener("keydown", event => {
-    if (event.key === "Escape" && !$("paymentModal").hidden) {
+    if (
+      event.key === "Escape" &&
+      !$("paymentModal").hidden
+    ) {
       closePaymentModal();
     }
   });
 
-  setupNavigation();
+  selectService("ranked");
   updateCalculator();
 });
-      
+    
