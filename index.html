@@ -5,13 +5,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#050914">
-  <title>LIXERA JOKI — Push Rank Service</title>
+  <meta name="description" content="LIXERA JOKI - Jasa joki Mobile Legends">
+  <title>LIXERA JOKI</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="navbar">
     <a class="logo" href="#home">
-      <img src="Logolixera.png" alt="LIXERA" onerror="this.style.display='none'">
+      <img src="Logolixera.png" alt="LIXERA">
       <span>LIXERA <b>JOKI</b></span>
     </a>
     <a class="btn btn-small" href="#calculator">Hitung Harga</a>
@@ -21,7 +22,7 @@
     <section class="hero" id="home">
       <p class="eyebrow">MOBILE LEGENDS SERVICE</p>
       <h1>PUSH YOUR RANK.<br><span>WE HANDLE IT.</span></h1>
-      <p>Joki Ranked, Joki Gendong, dan layanan Classic. Pilih rank, hitung harga, lalu konfirmasi order ke admin.</p>
+      <p>Joki Ranked dan Joki Gendong dengan perhitungan harga per bintang. Pilih rank dan buat pesanan dengan mudah.</p>
       <a class="btn" href="#services">PILIH LAYANAN ↗</a>
     </section>
 
@@ -42,7 +43,7 @@
         <button type="button" class="service-card" data-service="classic" aria-pressed="false">
           <img src="layla.jpg" alt="Joki Classic">
           <h3>Joki Classic</h3>
-          <p>Harga melalui admin</p>
+          <p>Harga dikonfirmasi admin</p>
         </button>
       </div>
     </section>
@@ -50,7 +51,7 @@
     <section class="section" id="calculator">
       <p class="eyebrow">PRICE CALCULATOR</p>
       <h2>Kalkulator Rank</h2>
-      <p class="muted">Pilih rank awal dan tujuan. Bintang akan mengikuti sistem rank.</p>
+      <p class="muted">Pilih rank awal dan tujuan untuk melihat estimasi harga.</p>
 
       <div class="calculator">
         <div class="rank-fields">
@@ -66,6 +67,7 @@
               <option value="Glory">Glory</option>
               <option value="Immortal">Immortal</option>
             </select>
+
             <div id="currentDivisionWrap">
               <label for="currentDivision">Divisi awal</label>
               <select id="currentDivision">
@@ -76,11 +78,12 @@
                 <option value="1">I</option>
               </select>
             </div>
+
             <label for="currentStars">Bintang awal</label>
             <div class="star-control">
-              <button id="currentMinus" type="button" aria-label="Kurangi bintang awal">−</button>
+              <button id="currentMinus" type="button">−</button>
               <input id="currentStars" type="number" min="0" max="5" value="0" inputmode="numeric">
-              <button id="currentPlus" type="button" aria-label="Tambah bintang awal">+</button>
+              <button id="currentPlus" type="button">+</button>
             </div>
             <p class="muted" id="currentStarHint">0–5 bintang per divisi</p>
           </div>
@@ -97,6 +100,7 @@
               <option value="Glory">Glory</option>
               <option value="Immortal">Immortal</option>
             </select>
+
             <div id="targetDivisionWrap" hidden>
               <label for="targetDivision">Divisi tujuan</label>
               <select id="targetDivision">
@@ -107,13 +111,14 @@
                 <option value="1">I</option>
               </select>
             </div>
+
             <label for="targetStars">Bintang tujuan</label>
             <div class="star-control">
-              <button id="targetMinus" type="button" aria-label="Kurangi bintang tujuan">−</button>
+              <button id="targetMinus" type="button">−</button>
               <input id="targetStars" type="number" min="0" max="24" value="10" inputmode="numeric">
-              <button id="targetPlus" type="button" aria-label="Tambah bintang tujuan">+</button>
+              <button id="targetPlus" type="button">+</button>
             </div>
-            <p class="muted" id="targetStarHint">Mythic 0–24 bintang</p>
+            <p class="muted" id="targetStarHint">Mythic: 0–24 bintang</p>
           </div>
         </div>
 
@@ -124,9 +129,10 @@
 
         <div class="price-result">
           <p>ESTIMASI TOTAL</p>
-          <h3 id="rankPrice">Pilih rank</h3>
-          <p id="rankMessage">Harga dihitung dari setiap bintang yang dinaikkan.</p>
+          <h3 id="rankPrice">Menghitung...</h3>
+          <p id="rankMessage">Pilih rank awal dan tujuan.</p>
         </div>
+
         <button class="btn btn-full" id="orderRankButton" type="button">LANJUT ORDER ↗</button>
       </div>
     </section>
@@ -139,10 +145,10 @@
         <input id="selectedName" name="selectedName" value="Joki Ranked" readonly>
 
         <label for="selectedPrice">Estimasi harga</label>
-        <input id="selectedPrice" name="selectedPrice" value="Dihitung saat memilih rank" readonly>
+        <input id="selectedPrice" name="selectedPrice" value="Dihitung dari kalkulator" readonly>
 
         <label for="playerId">ID Game</label>
-        <input id="playerId" name="playerId" placeholder="Masukkan ID Mobile Legends" required>
+        <input id="playerId" name="playerId" placeholder="ID Mobile Legends" required>
 
         <label for="serverId">Server ID</label>
         <input id="serverId" name="serverId" placeholder="Contoh: 1234" required>
@@ -153,32 +159,16 @@
         <label for="contact">Nomor WhatsApp kamu</label>
         <input id="contact" name="contact" placeholder="Nomor aktif (opsional)">
 
-        <label for="notes">Catatan order</label>
-        <textarea id="notes" name="notes" placeholder="Catatan tambahan (opsional)"></textarea>
+        <label for="notes">Catatan tambahan</label>
+        <textarea id="notes" name="notes" placeholder="Catatan (opsional)"></textarea>
 
         <button class="btn btn-full" type="submit">BUAT PESANAN ↗</button>
       </form>
     </section>
 
-    <section class="section" id="payment">
-      <p class="eyebrow">SECURE PAYMENT</p>
-      <h2>Pembayaran Pesanan</h2>
-      <p class="muted">QRIS ditampilkan setelah detail order dibuat. Periksa nominal dan pastikan sesuai sebelum membayar.</p>
-
-      <div id="paymentPanel" class="payment-panel" hidden>
-        <h3>Detail Pesanan</h3>
-        <p id="paymentOrderSummary"></p>
-        <p class="payment-total">Total: <strong id="paymentTotal"></strong></p>
-        <img id="paymentQR" class="payment-image" src="qris-lixera.jpg" alt="QRIS pembayaran LIXERA">
-        <p class="muted">Bayar sesuai nominal yang dikonfirmasi admin. Jangan kirim PIN atau kode OTP kepada siapa pun.</p>
-        <button class="btn btn-full" id="confirmPaymentButton" type="button">SUDAH BAYAR — KONFIRMASI WA ↗</button>
-      </div>
-    </section>
-
     <section class="section" id="help">
       <p class="eyebrow">CONTACT ADMIN</p>
       <h2>Butuh Bantuan?</h2>
-      <p class="muted">Hubungi admin untuk memastikan harga, ketersediaan joki, dan status pesanan.</p>
       <a class="btn btn-full" href="https://wa.me/628818238317" target="_blank" rel="noopener">WHATSAPP ADMIN ↗</a>
     </section>
   </main>
@@ -195,8 +185,27 @@
     <a href="#order">Order</a>
   </nav>
 
+  <!-- POP-UP PEMBAYARAN: tersembunyi sampai pesanan dibuat -->
+  <div id="paymentModal" class="payment-modal" hidden>
+    <div class="payment-backdrop" id="paymentBackdrop"></div>
+    <div class="payment-dialog" role="dialog" aria-modal="true" aria-labelledby="paymentTitle">
+      <button type="button" id="closePaymentModal" class="modal-close" aria-label="Tutup">✕</button>
+      <p class="eyebrow">ORDER SUMMARY</p>
+      <h2 id="paymentTitle">Pesanan Kamu</h2>
+      <div id="paymentOrderSummary" class="order-summary"></div>
+      <div class="payment-total">
+        <span>Total pembayaran</span>
+        <strong id="paymentTotal"></strong>
+      </div>
+      <p class="muted">Scan QRIS berikut sesuai nominal yang dikonfirmasi admin.</p>
+      <img id="paymentQR" class="payment-image" src="qris-lixera.jpg" alt="QRIS pembayaran LIXERA">
+      <p class="muted">Setelah membayar, tekan tombol konfirmasi ke admin.</p>
+      <button class="btn btn-full" id="confirmPaymentButton" type="button">SUDAH BAYAR — KONFIRMASI WA ↗</button>
+    </div>
+  </div>
+
   <div id="toast" class="toast" role="status"></div>
   <script src="script.js"></script>
 </body>
-          </html>
+  </html>
   
