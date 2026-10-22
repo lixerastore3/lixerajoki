@@ -1,1 +1,189 @@
 
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#050914">
+  <meta name="description" content="LIXERA JOKI - Jasa joki Mobile Legends dengan harga transparan.">
+  <title>LIXERA JOKI | Joki Mobile Legends</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="navbar">
+    <a class="logo" href="#beranda">
+      <img src="Logolixera.png" alt="Logo LIXERA" onerror="this.style.display='none'">
+      <span>LIXERA <b>JOKI</b></span>
+    </a>
+    <a class="btn btn-small" href="#harga">Lihat Harga</a>
+  </header>
+
+  <main>
+    <section class="hero" id="beranda">
+      <p class="eyebrow">⚡ MOBILE LEGENDS SERVICE</p>
+      <h1>YOUR RANK.<br><span>OUR MISSION.</span></h1>
+      <p>Push rank lebih mudah bersama LIXERA JOKI. Pilih layanan dan hitung estimasi harga joki kamu.</p>
+      <a class="btn" href="#harga">MULAI ORDER ↗</a>
+    </section>
+
+    <section class="section" id="layanan">
+      <p class="eyebrow">OUR SERVICES</p>
+      <h2>Pilih Layanan</h2>
+      <div class="service-grid">
+        <button class="service-card active" data-service="ranked" aria-pressed="true">
+          <img src="ruby.jpg" alt="Joki Rank">
+          <h3>Joki Ranked</h3>
+          <p>Push rank sesuai target</p>
+        </button>
+        <button class="service-card" data-service="gendong" aria-pressed="false">
+          <img src="fany.jpg" alt="Joki Gendong">
+          <h3>Joki Gendong</h3>
+          <p>Mabar bersama joki</p>
+        </button>
+        <button class="service-card" data-service="classic" aria-pressed="false">
+          <img src="layla.jpg" alt="Joki Classic">
+          <h3>Joki Classic</h3>
+          <p>Hubungi admin untuk harga</p>
+        </button>
+      </div>
+    </section>
+
+    <section class="section" id="harga">
+      <p class="eyebrow">PRICE CALCULATOR</p>
+      <h2>Kalkulator Rank</h2>
+      <p class="muted">Pilih rank awal dan target untuk menghitung estimasi harga.</p>
+
+      <div class="calculator">
+        <div class="rank-fields">
+          <div class="rank-field">
+            <label for="currentRank">Rank Awal</label>
+            <img id="currentRankImage" src="Granpmaster.jpg" alt="Rank awal">
+            <select id="currentRank">
+              <option value="Grandmaster">Grandmaster</option>
+              <option value="Epic">Epic</option>
+              <option value="Legend">Legend</option>
+              <option value="Mythic">Mythic</option>
+              <option value="Honor">Honor</option>
+              <option value="Glory">Glory</option>
+              <option value="Immortal">Immortal</option>
+            </select>
+            <label for="currentStars">Bintang / Progress Awal</label>
+            <div class="star-control">
+              <button id="currentMinus" type="button" aria-label="Kurangi bintang awal">−</button>
+              <input id="currentStars" type="number" value="0" min="0" max="999" inputmode="numeric">
+              <button id="currentPlus" type="button" aria-label="Tambah bintang awal">+</button>
+            </div>
+          </div>
+
+          <div class="rank-field">
+            <label for="targetRank">Rank Tujuan</label>
+            <img id="targetRankImage" src="Mythic.jpg" alt="Rank tujuan">
+            <select id="targetRank">
+              <option value="Grandmaster">Grandmaster</option>
+              <option value="Epic">Epic</option>
+              <option value="Legend">Legend</option>
+              <option value="Mythic" selected>Mythic</option>
+              <option value="Honor">Honor</option>
+              <option value="Glory">Glory</option>
+              <option value="Immortal">Immortal</option>
+            </select>
+            <label for="targetStars">Bintang / Progress Tujuan</label>
+            <div class="star-control">
+              <button id="targetMinus" type="button" aria-label="Kurangi bintang tujuan">−</button>
+              <input id="targetStars" type="number" value="10" min="0" max="999" inputmode="numeric">
+              <button id="targetPlus" type="button" aria-label="Tambah bintang tujuan">+</button>
+            </div>
+          </div>
+        </div>
+
+        <label class="express-option">
+          <input id="expressCheck" type="checkbox">
+          Prioritas order — konfirmasi biaya ke admin
+        </label>
+
+        <div class="price-result">
+          <p>ESTIMASI TOTAL</p>
+          <h3 id="rankPrice">Menghitung...</h3>
+          <p id="rankMessage">Pilih rank awal dan tujuan.</p>
+        </div>
+
+        <button class="btn btn-full" id="orderRankButton" type="button">ORDER VIA WHATSAPP ↗</button>
+      </div>
+    </section>
+
+    <section class="section" id="paket">
+      <p class="eyebrow">HOW TO ORDER</p>
+      <h2>Cara Order</h2>
+      <div class="info-card">
+        <p>01 — Pilih layanan dan target rank.</p>
+        <p>02 — Hitung estimasi harga.</p>
+        <p>03 — Tekan tombol order WhatsApp.</p>
+        <p>04 — Tunggu konfirmasi harga dan jadwal dari admin.</p>
+      </div>
+    </section>
+
+    <section class="section" id="order">
+      <p class="eyebrow">ORDER FORM</p>
+      <h2>Data Pemesanan</h2>
+      <form id="orderForm" class="order-form">
+        <label for="selectedName">Layanan</label>
+        <input id="selectedName" name="selectedName" value="Joki Ranked" required>
+
+        <label for="selectedPrice">Estimasi harga</label>
+        <input id="selectedPrice" name="selectedPrice" value="Konfirmasi kalkulator" readonly>
+
+        <label for="playerId">ID Game</label>
+        <input id="playerId" name="playerId" placeholder="Masukkan ID Mobile Legends" required>
+
+        <label for="serverId">Server ID</label>
+        <input id="serverId" name="serverId" placeholder="Contoh: 1234">
+
+        <label for="playerName">Nama akun</label>
+        <input id="playerName" name="playerName" placeholder="Nama dalam game" required>
+
+        <label for="contact">Kontak kamu</label>
+        <input id="contact" name="contact" placeholder="Nomor WhatsApp (opsional)">
+
+        <label for="notes">Catatan</label>
+        <textarea id="notes" name="notes" placeholder="Target, jadwal, atau permintaan lain"></textarea>
+
+        <button class="btn btn-full" type="submit">KIRIM PESANAN ↗</button>
+      </form>
+    </section>
+
+    <section class="section" id="pembayaran">
+      <p class="eyebrow">PAYMENT</p>
+      <h2>Pembayaran</h2>
+      <div class="info-card">
+        <p>Metode dan nominal pembayaran akan dikonfirmasi admin melalui WhatsApp.</p>
+        <p>Pastikan nominal dan tujuan pembayaran benar sebelum melakukan transfer.</p>
+        <img class="payment-image" src="qris-lixera.jpg" alt="QRIS LIXERA" onerror="this.style.display='none'">
+      </div>
+    </section>
+
+    <section class="section" id="bantuan">
+      <p class="eyebrow">NEED HELP?</p>
+      <h2>Hubungi Admin</h2>
+      <p class="muted">Tanyakan harga, ketersediaan joki, dan status pesanan langsung kepada admin.</p>
+      <a class="btn btn-full" href="https://wa.me/628818238317" target="_blank" rel="noopener">WHATSAPP ADMIN ↗</a>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>LIXERA <b>JOKI</b></p>
+    <p>Push your rank. Play your way.</p>
+    <p>© 2026 LIXERA JOKI</p>
+  </footer>
+
+  <nav class="bottom-nav">
+    <a href="#beranda">Home</a>
+    <a href="#layanan">Layanan</a>
+    <a href="#harga">Harga</a>
+    <a href="#order">Order</a>
+  </nav>
+
+  <div id="toast" class="toast" role="status"></div>
+  <script src="script.js"></script>
+</body>
+</html>
+
