@@ -1,439 +1,346 @@
 
-"use strict";
+/* ==========================================
+   LIXERA JOKI — SCRIPT.JS
+   WhatsApp utama & cadangan
+========================================== */
 
-const ADMIN_WA = "628818238317";
+const WA_UTAMA = "6285212857920";
+const WA_CADANGAN = "628818238236";
 
-const PRICES = {
-  ranked: {
-    Grandmaster: 5000,
-    Epic: 6000,
-    Legend: 8000,
-    Mythic: 17000,
-    Honor: 20000,
-    Glory: 25000,
-    Immortal: 32000
-  },
-  gendong: {
-    Grandmaster: 7000,
-    Epic: 8000,
-    Legend: 10000,
-    Mythic: 20000,
-    Honor: 23000,
-    Glory: 28000,
-    Immortal: 25000
-  }
+// true = order diarahkan ke nomor cadangan
+// false = order diarahkan ke nomor utama
+let gunakanNomorCadangan = false;
+
+const $ = (id) => document.getElementById(id);
+
+const form = $("orderForm");
+const serviceType = $("serviceType");
+const gendongFields = $("gendongFields");
+const currentRank = $("currentRank");
+const targetRank = $("targetRank");
+const currentDivision = $("currentDivision");
+const targetDivision = $("targetDivision");
+const currentStars = $("currentStars");
+const targetStars = $("targetStars");
+const rankPrice = $("rankPrice");
+const rankMessage = $("rankMessage");
+const paymentModal = $("paymentModal");
+
+let pesananTerakhir = null;
+
+const urutanRank = [
+  "Grandmaster",
+  "Epic",
+  "Legend",
+  "Mythic",
+  "Honor",
+  "Glory",
+  "Immortal"
+];
+
+// Tarif contoh per bintang.
+// Sesuaikan dengan daftar harga asli LIXERA JOKI.
+const tarifRank = {
+  Grandmaster: 3000,
+  Epic: 5000,
+  Legend: 7000,
+  Mythic: 1000,
+  Honor: 1500,
+  Glory: 2000,
+  Immortal: 2500
 };
 
-const DIVISION_NAMES = {
-  5: "V",
-  4: "IV",
-  3: "III",
-  2: "II",
-  1: "I"
+const tarifGendong = {
+  Epic: 3000,
+  Legend: 5000,
+  Mythic: 7000,
+  Honor: 10000,
+  Glory: 15000,
+  Immortal: 20000
 };
 
-const RANK_BASE = {
-  Grandmaster: 0,
-  Epic: 25,
-  Legend: 50
-};
-
-const $ = id => document.getElementById(id);
-
-let latestPrice = 0;
-let latestOrder = null;
-let toastTimer = null;
-
-function rupiah(value) {
+function rupiah(angka) {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     maximumFractionDigits: 0
-  }).format(value);
+  }).format(angka);
 }
 
-function isDivisional(rank) {
-  return ["Grandmaster", "Epic", "Legend"].includes(rank);
+function getNomorWhatsApp() {
+  return gunakanNomorCadangan
+    ? WA_CADANGAN
+    : WA_UTAMA;
 }
 
-function rankProgress(rank, stars, division) {
-  const count = Number(stars || 0);
-
-  if (isDivisional(rank)) {
-    const div = Number(division || 5);
-    return RANK_BASE[rank] + (5 - div) * 5 + count;
-  }
-
-  return 75 + count;
-}
-
-function rankLabel(rank, division, stars) {
-  const rankNames = {
-    Honor: "Mythical Honor",
-    Glory: "Mythical Glory",
-    Immortal: "Mythical Immortal"
-  };
-
-  if (isDivisional(rank)) {
-    const div = DIVISION_NAMES[Number(division)] || "V";
-    return `${rank} ${div}, ${stars} bintang`;
-  }
-
-  return `${rankNames[rank] || rank} ${stars} bintang`;
-}
-
-function rankAtProgress(progress) {
-  if (progress < 25) return "Grandmaster";
-  if (progress < 50) return "Epic";
-  if (progress < 75) return "Legend";
-  if (progress < 100) return "Mythic";
-  if (progress < 125) return "Honor";
-  if (progress < 175) return "Glory";
-  return "Immortal";
-}
-
-function calculatePrice(service, start, target) {
-  const prices = PRICES[service];
-
-  if (!prices || target <= start) return 0;
-
-  let total = 0;
-
-  for (let progress = start; progress < target; progress++) {
-    const rank = rankAtProgress(progress);
-    total += prices[rank] || 0;
-  }
-
-  return total;
-}
-
-function toast(message) {
-  const element = $("toast");
-
-  if (!element) {
-    alert(message);
-    return;
-  }
-
-  element.textContent = message;
-  element.classList.add("show");
-
-  clearTimeout(toastTimer);
-
-  toastTimer = setTimeout(() => {
-    element.classList.remove("show");
-  }, 2800);
-}
-
-function updateRankControls(which) {
-  const rank = $(`${which}Rank`).value;
-  const stars = $(`${which}Stars`);
-  const divisionWrap = $(`${which}DivisionWrap`);
-  const hint = $(`${which}StarHint`);
-
-  const divisional = isDivisional(rank);
-
-  divisionWrap.hidden = !divisional;
-
-  if (divisional) {
-    stars.min = "0";
-    stars.max = "5";
-
-    if (Number(stars.value) > 5) stars.value = "5";
-    if (Number(stars.value) < 0) stars.value = "0";
-
-    hint.textContent = "0–5 bintang per divisi";
-    return;
-  }
-
-  let min = 0;
-  let max = 24;
-
-  if (rank === "Honor") {
-    min = 25;
-    max = 49;
-  } else if (rank === "Glory") {
-    min = 50;
-    max = 99;
-  } else if (rank === "Immortal") {
-    min = 100;
-    max = 999;
-  }
-
-  stars.min = String(min);
-  stars.max = String(max);
-
-  let value = Number(stars.value);
-
-  if (!Number.isFinite(value)) value = min;
-  if (value < min) value = min;
-  if (value > max) value = max;
-
-  stars.value = String(value);
-
-  if (rank === "Mythic") {
-    hint.textContent = "Mythic: 0–24 bintang";
-  } else if (rank === "Honor") {
-    hint.textContent = "Honor: 25–49 bintang";
-  } else if (rank === "Glory") {
-    hint.textContent = "Glory: 50–99 bintang";
-  } else {
-    hint.textContent = "Immortal: 100 bintang ke atas";
-  }
-}
-
-function getProgress(which) {
-  return rankProgress(
-    $(`${which}Rank`).value,
-    $(`${which}Stars`).value,
-    $(`${which}Division`).value
-  );
-}
-
-function updateCalculator() {
-  updateRankControls("current");
-  updateRankControls("target");
-
-  const start = getProgress("current");
-  const target = getProgress("target");
-  const service = $("serviceType").value;
-
-  const startLabel = rankLabel(
-    $("currentRank").value,
-    $("currentDivision").value,
-    $("currentStars").value
-  );
-
-  const targetLabel = rankLabel(
-    $("targetRank").value,
-    $("targetDivision").value,
-    $("targetStars").value
-  );
-
-  $("rankMessage").textContent = `${startLabel} → ${targetLabel}`;
-
-  if (target <= start) {
-    latestPrice = 0;
-    $("rankPrice").textContent = "Target tidak valid";
-    $("rankMessage").textContent =
-      "Rank tujuan harus lebih tinggi dari rank awal.";
-    return;
-  }
-
-  latestPrice = calculatePrice(service, start, target);
-  $("rankPrice").textContent = rupiah(latestPrice);
-}
-
-function selectService(service) {
-  $("serviceType").value = service;
-
-  const isGendong = service === "gendong";
-
-  $("gendongFields").hidden = !isGendong;
-  $("playerId").required = isGendong;
-  $("playerName").required = isGendong;
-
-  document.querySelectorAll(".service-card").forEach(card => {
-    card.classList.toggle(
-      "active",
-      card.dataset.service === service
-    );
-  });
-
-  updateCalculator();
-}
-
-function openPaymentModal() {
-  $("paymentModal").hidden = false;
-  document.body.classList.add("modal-open");
-}
-
-function closePaymentModal() {
-  $("paymentModal").hidden = true;
-  document.body.classList.remove("modal-open");
-}
-
-function createOrder(event) {
-  event.preventDefault();
-
-  const customerName = $("customerName").value.trim();
-  const service = $("serviceType").value;
-  const playerId = $("playerId").value.trim();
-  const playerName = $("playerName").value.trim();
-  const notes = $("notes").value.trim();
-
-  if (!customerName) {
-    toast("Isi nama pemesan terlebih dahulu.");
-    return;
-  }
-
-  if (service === "gendong" && (!playerId || !playerName)) {
-    toast("Isi ID Game dan Name ML terlebih dahulu.");
-    return;
-  }
-
-  updateCalculator();
-
-  const start = getProgress("current");
-  const target = getProgress("target");
-
-  if (target <= start || latestPrice <= 0) {
-    toast("Rank tujuan harus lebih tinggi dari rank awal.");
-    return;
-  }
-
-  const startLabel = rankLabel(
-    $("currentRank").value,
-    $("currentDivision").value,
-    $("currentStars").value
-  );
-
-  const targetLabel = rankLabel(
-    $("targetRank").value,
-    $("targetDivision").value,
-    $("targetStars").value
-  );
-
-  const serviceName =
-    service === "gendong" ? "Joki Gendong" : "Joki Rank";
-
-  latestOrder = {
-    serviceName,
-    customerName,
-    playerId,
-    playerName,
-    startLabel,
-    targetLabel,
-    notes,
-    price: latestPrice,
-    priceText: rupiah(latestPrice)
-  };
-
-  let summary =
-    `Layanan: ${serviceName}\n` +
-    `Nama pemesan: ${customerName}\n`;
-
-  if (service === "gendong") {
-    summary +=
-      `ID Game: ${playerId}\n` +
-      `Name ML: ${playerName}\n`;
-  }
-
-  summary +=
-    `Rank awal: ${startLabel}\n` +
-    `Rank tujuan: ${targetLabel}\n` +
-    `Catatan: ${notes || "-"}\n\n` +
-    `TOTAL HARGA: ${rupiah(latestPrice)}`;
-
-  $("paymentOrderSummary").textContent = summary;
-  $("paymentTotal").textContent = rupiah(latestPrice);
-
-  openPaymentModal();
-}
-
-function confirmPayment() {
-  if (!latestOrder) {
-    toast("Buat pesanan terlebih dahulu.");
-    return;
-  }
-
-  const order = latestOrder;
-
-  let message =
-    `Halo Admin LIXERA JOKI, saya ingin konfirmasi pesanan.\n\n` +
-    `Layanan: ${order.serviceName}\n` +
-    `Nama pemesan: ${order.customerName}\n`;
-
-  if (order.serviceName === "Joki Gendong") {
-    message +=
-      `ID Game: ${order.playerId}\n` +
-      `Name ML: ${order.playerName}\n`;
-  }
-
-  message +=
-    `Rank awal: ${order.startLabel}\n` +
-    `Rank tujuan: ${order.targetLabel}\n` +
-    `Catatan: ${order.notes || "-"}\n` +
-    `TOTAL HARGA: ${order.priceText}\n\n` +
-    `Saya ingin memesan layanan tersebut. Mohon konfirmasi pesanan saya.`;
-
+function bukaWhatsApp(pesan) {
+  const nomor = getNomorWhatsApp();
   const url =
-    `https://wa.me/${ADMIN_WA}?text=${encodeURIComponent(message)}`;
+    "https://wa.me/" +
+    nomor +
+    "?text=" +
+    encodeURIComponent(pesan);
 
   window.open(url, "_blank");
 }
 
-function setupStarButtons(which) {
-  $(`${which}Minus`).addEventListener("click", () => {
-    const input = $(`${which}Stars`);
-    const min = Number(input.min || 0);
+function pilihLayanan(jenis) {
+  serviceType.value = jenis;
 
-    input.value = String(
-      Math.max(min, Number(input.value || 0) - 1)
+  document.querySelectorAll("[data-service]").forEach((tombol) => {
+    tombol.classList.toggle(
+      "active",
+      tombol.dataset.service === jenis
     );
-
-    updateCalculator();
   });
 
-  $(`${which}Plus`).addEventListener("click", () => {
-    const input = $(`${which}Stars`);
-    const max = Number(input.max || 999);
+  if (gendongFields) {
+    gendongFields.hidden = jenis !== "gendong";
+  }
 
-    input.value = String(
-      Math.min(max, Number(input.value || 0) + 1)
-    );
-
-    updateCalculator();
-  });
-
-  [
-    `${which}Rank`,
-    `${which}Division`,
-    `${which}Stars`
-  ].forEach(id => {
-    $(id).addEventListener("input", updateCalculator);
-    $(id).addEventListener("change", updateCalculator);
-  });
+  hitungHarga();
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  setupStarButtons("current");
-  setupStarButtons("target");
-
-  document.querySelectorAll(".service-card").forEach(card => {
-    card.addEventListener("click", () => {
-      selectService(card.dataset.service);
-    });
+document.querySelectorAll("[data-service]").forEach((tombol) => {
+  tombol.addEventListener("click", () => {
+    pilihLayanan(tombol.dataset.service);
   });
-
-  $("serviceType").addEventListener("change", updateCalculator);
-  $("orderForm").addEventListener("submit", createOrder);
-
-  $("confirmPaymentButton").addEventListener(
-    "click",
-    confirmPayment
-  );
-
-  $("closePaymentModal").addEventListener(
-    "click",
-    closePaymentModal
-  );
-
-  $("paymentBackdrop").addEventListener(
-    "click",
-    closePaymentModal
-  );
-
-  document.addEventListener("keydown", event => {
-    if (
-      event.key === "Escape" &&
-      !$("paymentModal").hidden
-    ) {
-      closePaymentModal();
-    }
-  });
-
-  selectService("ranked");
-  updateCalculator();
 });
+
+function nilaiRank(rank, divisi, bintang) {
+  const index = urutanRank.indexOf(rank);
+
+  if (index < 0) return 0;
+
+  // Perkiraan urutan untuk estimasi harga.
+  const nilaiDivisi = Math.max(
+    1,
+    Math.min(5, Number(divisi) || 5)
+  );
+
+  if (rank === "Grandmaster") {
+    return index * 25 + (5 - nilaiDivisi) * 5 +
+      Number(bintang || 0);
+  }
+
+  if (rank === "Epic" || rank === "Legend") {
+    return index * 25 + (5 - nilaiDivisi) * 5 +
+      Number(bintang || 0);
+  }
+
+  return index * 25 + Number(bintang || 0);
+}
+
+function formatRank(rank, divisi, bintang) {
+  if (["Grandmaster", "Epic", "Legend"].includes(rank)) {
+    return `${rank} ${["V", "IV", "III", "II", "I"][
+      5 - Number(divisi || 5)
+    ] || "V"} (${bintang} bintang)`;
+  }
+
+  return `${rank} (${bintang} bintang)`;
+}
+
+function hitungHarga() {
+  if (
+    !currentRank ||
+    !targetRank ||
+    !currentStars ||
+    !targetStars
+  ) return 0;
+
+  const awal = nilaiRank(
+    currentRank.value,
+    currentDivision.value,
+    currentStars.value
+  );
+
+  const tujuan = nilaiRank(
+    targetRank.value,
+    targetDivision.value,
+    targetStars.value
+  );
+
+  if (serviceType.value === "gendong") {
+    const harga = tarifGendong[targetRank.value] || 0;
+
+    rankPrice.textContent = rupiah(harga);
+    rankMessage.textContent =
+      "Estimasi tarif joki gendong. Konfirmasi harga dengan admin.";
+
+    return harga;
+  }
+
+  if (tujuan <= awal) {
+    rankPrice.textContent = rupiah(0);
+    rankMessage.textContent =
+      "Target harus lebih tinggi daripada rank awal.";
+    return 0;
+  }
+
+  const jumlahBintang = tujuan - awal;
+  const hargaPerBintang = tarifRank[targetRank.value] || 0;
+  const harga = jumlahBintang * hargaPerBintang;
+
+  rankPrice.textContent = rupiah(harga);
+  rankMessage.textContent =
+    `${jumlahBintang} poin progres × ${rupiah(hargaPerBintang)}. ` +
+    "Estimasi, harga final dikonfirmasi admin.";
+
+  return harga;
+}
+
+function ubahBintang(id, perubahan) {
+  const input = $(id);
+  if (!input) return;
+
+  const minimum = Number(input.min || 0);
+  const maksimum = Number(input.max || 24);
+
+  input.value = Math.max(
+    minimum,
+    Math.min(maksimum, Number(input.value || 0) + perubahan)
+  );
+
+  hitungHarga();
+}
+
+$("currentMinus")?.addEventListener("click", () =>
+  ubahBintang("currentStars", -1)
+);
+
+$("currentPlus")?.addEventListener("click", () =>
+  ubahBintang("currentStars", 1)
+);
+
+$("targetMinus")?.addEventListener("click", () =>
+  ubahBintang("targetStars", -1)
+);
+
+$("targetPlus")?.addEventListener("click", () =>
+  ubahBintang("targetStars", 1)
+);
+
+[
+  "currentRank",
+  "targetRank",
+  "currentDivision",
+  "targetDivision",
+  "currentStars",
+  "targetStars"
+].forEach((id) => {
+  $(id)?.addEventListener("change", hitungHarga);
+  $(id)?.addEventListener("input", hitungHarga);
+});
+
+function tampilkanPesan(message) {
+  const toast = $("toast");
+
+  if (toast) {
+    toast.textContent = message;
+    toast.classList.add("show");
+
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 3000);
+  } else {
+    alert(message);
+  }
+}
+
+form?.addEventListener("submit", (event) => {
+  event.preventDefault();
+
+  const nama = $("customerName").value.trim();
+  const jenis = serviceType.value;
+  const harga = hitungHarga();
+
+  if (!nama) {
+    tampilkanPesan("Masukkan nama pemesan terlebih dahulu.");
+    return;
+  }
+
+  if (harga <= 0) {
+    tampilkanPesan("Periksa kembali target rank dan estimasi harga.");
+    return;
+  }
+
+  const awal = formatRank(
+    currentRank.value,
+    currentDivision.value,
+    currentStars.value
+  );
+
+  const tujuan = formatRank(
+    targetRank.value,
+    targetDivision.value,
+    targetStars.value
+  );
+
+  const detail = [
+    "HALO ADMIN LIXERA JOKI!",
+    "",
+    "Saya ingin memesan layanan.",
+    `Nama: ${nama}`,
+    `Layanan: ${jenis === "ranked" ? "Joki Rank" : "Joki Gendong"}`,
+    `Rank awal: ${awal}`,
+    `Target: ${tujuan}`
+  ];
+
+  if (jenis === "gendong") {
+    detail.push(
+      `ID Game: ${$("playerId").value.trim() || "-"}`,
+      `Nama akun ML: ${$("playerName").value.trim() || "-"}`
+    );
+  }
+
+  detail.push(
+    `Estimasi harga: ${rupiah(harga)}`,
+    `Catatan: ${$("notes").value.trim() || "-"}`,
+    "",
+    "Mohon konfirmasi harga dan instruksi pembayaran."
+  );
+
+  pesananTerakhir = {
+    nama,
+    jenis,
+    harga,
+    pesan: detail.join("\n")
+  };
+
+  if ($("paymentTotal")) {
+    $("paymentTotal").textContent = rupiah(harga);
+  }
+
+  if ($("paymentOrderSummary")) {
+    $("paymentOrderSummary").textContent = detail.join("\n");
+  }
+
+  if (paymentModal) {
+    paymentModal.hidden = false;
+  } else {
+    bukaWhatsApp(pesananTerakhir.pesan);
+  }
+});
+
+function tutupModal() {
+  if (paymentModal) paymentModal.hidden = true;
+}
+
+$("closePaymentModal")?.addEventListener("click", tutupModal);
+$("paymentBackdrop")?.addEventListener("click", tutupModal);
+
+$("confirmPaymentButton")?.addEventListener("click", () => {
+  if (!pesananTerakhir) {
+    tampilkanPesan("Silakan buat pesanan terlebih dahulu.");
+    return;
+  }
+
+  bukaWhatsApp(
+    pesananTerakhir.pesan +
+    "\n\nSaya akan mengirim bukti pembayaran setelah membayar."
+  );
+});
+
+hitungHarga();
     
